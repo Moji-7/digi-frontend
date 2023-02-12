@@ -115,7 +115,6 @@ coreui-free-react-admin-template
 **Łukasz Holeczek**
 * <https://twitter.com/lukaszholeczek>
 
-
 ## Community
 
 Get updates on CoreUI's development and chat with the project maintainers and community members.
