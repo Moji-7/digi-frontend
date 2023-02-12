@@ -25,7 +25,7 @@
 
 * []
 
-## CoreUI Pro
+## digi Pro
 
 * 💪  
 
@@ -83,7 +83,7 @@ $ yarn build
 Within the download you'll find the following directories and files, 
 
 ```
-coreui-free-react-admin-template
+digi-free-react-admin-template
 ├── public/          # static files
 │   └── index.html   # html template
 │
