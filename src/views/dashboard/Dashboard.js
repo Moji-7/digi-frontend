@@ -1,5 +1,4 @@
-import React from 'react'
-
+import React, { createContext, useEffect, useState } from 'react'
 import {
   CAvatar,
   CButton,
@@ -17,6 +16,9 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CWidgetStatsF,
+  CTooltip,
+  CLink,
 } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle, hexToRgba } from '@coreui/utils'
@@ -42,6 +44,21 @@ import {
   cilPeople,
   cilUser,
   cilUserFemale,
+  cilBorderAll,
+  cilBorderBottom,
+  cilBorderClear,
+  cilBorderHorizontal,
+  cilBorderInner,
+  cilBorderLeft,
+  cilBorderOuter,
+  cilBorderRight,
+  cilBorderStyle,
+  cilBorderTop,
+  cilBorderVertical,
+  cilBell,
+  cilMoon,
+  cilSettings,
+  cilPin,
 } from '@coreui/icons'
 
 import avatar1 from 'src/assets/images/avatars/1.jpg'
@@ -54,38 +71,181 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 
+import useContextService from '../../components/service/useContextService'
+import useDigiStatefulService from '../../components/service/useDigiStatefulService'
+import useDigiEventsService from '../../components/service/useDigiEventsService'
+import Login from '../baBede/login/Login'
+
+export const dashboardContext = createContext()
 const Dashboard = () => {
+  const useContextServiceVals = useContextService({
+    method: 'GET',
+    url: '/random',
+    // params: {
+    //   title: '?page=1&sort=26',
+    // },
+  })
+  //get event handler and state values
+  // let { sp_4Bala_chartClick, eventSp_4Bala_chartSelect, sp_5MorabaClick, eventSp_5MorabaSelect } =
+  //   useDigiEventsService()
+  const useDigiEventsServiceVals = useDigiEventsService()
+
+  const {
+    dataAll,
+    loading,
+    error,
+    fetchSp_myCategories,
+    sp_myCategories,
+    fetchSp_4Bala,
+    sp_4Bala,
+    fetchSp_5Moraba,
+    sp_5Moraba,
+    fetchSp_4By_Seller_category,
+    sp_4By_Seller_category,
+    fetchSp_line_right_A,
+    sp_line_right_A,
+    fetchSp_line_right_B,
+    sp_line_right_B,
+    fetchSp_line_left,
+    sp_line_left,
+    fetchSp_table_below,
+    sp_table_below,
+
+    fetchSp_4Bala_chart,
+    sp_4Bala_chart,
+  } = useContextServiceVals
+  const { sp_4Bala_chartClick, eventSp_4Bala_chartSelect, sp_5MorabaClick, eventSp_5MorabaSelect } =
+    useDigiEventsServiceVals
+
+  useDigiStatefulService(useContextServiceVals, useDigiEventsServiceVals)
+
+  // set the context values
+  const contextValue = {
+    dataAll,
+    loading,
+    error,
+    fetchSp_4Bala,
+    sp_4Bala,
+    fetchSp_5Moraba,
+    sp_5Moraba,
+    fetchSp_4By_Seller_category,
+    sp_4By_Seller_category,
+    fetchSp_line_right_A,
+    sp_line_right_A,
+    fetchSp_line_right_B,
+    sp_line_right_B,
+    fetchSp_line_left,
+    sp_line_left,
+    fetchSp_table_below,
+    sp_table_below,
+
+    //events exposing
+    fetchSp_4Bala_chart,
+    sp_4Bala_chart,
+    sp_4Bala_chartClick,
+    eventSp_5MorabaSelect,
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  useEffect(() => {
+    if (dataAll)
+      // setTutorials(dataAll)
+      console.log(dataAll)
+    // } else {
+    //   setTutorials([])
+    // }
+  }, [dataAll])
+
+  useEffect(() => {
+    if (error) {
+      console.log(error)
+    }
+  }, [error])
+
+  useEffect(() => {
+    if (loading) {
+      console.log('retrieving data...')
+    }
+  }, [loading])
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  const percentage = (partialValue, totalValue) => {
+    return ((100 * partialValue) / totalValue).toFixed(0)
+  }
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  //sp_line_leftSum
+  const [sp_line_leftSum, setSp_line_leftSum] = useState({
+    count_in_priceCategory: 0,
+    count_discount_in_priceCategory: 0,
+  })
+  useEffect(() => {
+    if (sp_line_left)
+      setSp_line_leftSum((prev) => ({
+        count_in_priceCategory: sp_line_left.reduce(function (prev, cur) {
+          return prev + +cur.count_in_priceCategory
+        }, 0),
+        count_discount_in_priceCategory: sp_line_left.reduce(function (prev, cur) {
+          return prev + +cur.count_discount_in_priceCategory
+        }, 0),
+        // ),
+      }))
+  }, [sp_line_left])
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  //sp_line_right_ASum
+  const [sp_line_right_ASum, setSp_line_right_ASum] = useState({
+    count_discount_upper66: 0,
+    percent_discount_upper66: 0,
+    count_discount_below66: 0,
+    percent_discount_below66: 0,
+    count_all: 0,
+  })
+  useEffect(() => {
+    if (sp_line_right_A)
+      setSp_line_right_ASum((prev) => ({
+        count_discount_upper66: sp_line_right_A.reduce(
+          (p, c) => (c.discount_category === 'upper66' ? p + +c.count : p),
+          0,
+        ),
+
+        count_discount_below66: sp_line_right_A.reduce(
+          (p, c) => (c.discount_category === 'below66' ? p + +c.count : p),
+          0,
+        ),
+        count_all: sp_line_right_A.reduce((p, c) => p + +c.count, 0),
+      }))
+  }, [sp_line_right_A])
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  //sp_line_right_ASum
+  const [sp_line_right_BSum, setSp_line_right_BSum] = useState({
+    //count_in_ratingCategory: 0,
+    count_all: 0,
+  })
+  useEffect(() => {
+    if (sp_line_right_B)
+      setSp_line_right_BSum((prev) => ({
+        // count_in_ratingCategory: sp_line_right_B.reduce(function (prev, cur) {
+        //   return prev + +cur.count_in_ratingCategory
+        // }, 0),
+        count_all: sp_line_right_B.reduce((p, c) => p + +c.count_in_ratingCategory, 0),
+      }))
+  }, [sp_line_right_B])
+  const sp_line_right_B_icons = [
+    cilBorderAll,
+    cilBorderBottom,
+    cilBorderClear,
+    cilBorderHorizontal,
+    cilBorderInner,
+    cilBorderLeft,
+    cilBorderOuter,
+    cilBorderRight,
+    cilBorderStyle,
+    cilBorderTop,
+    cilBorderVertical,
+  ]
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  const colors = ['primary', 'danger', 'info', 'success', 'warning']
   const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
-
-  const progressExample = [
-    { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
-    { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },
-    { title: 'Pageviews', value: '78.706 Views', percent: 60, color: 'warning' },
-    { title: 'New Users', value: '22.123 Users', percent: 80, color: 'danger' },
-    { title: 'Bounce Rate', value: 'Average Rate', percent: 40.15, color: 'primary' },
-  ]
-
-  const progressGroupExample1 = [
-    { title: 'Monday', value1: 34, value2: 78 },
-    { title: 'Tuesday', value1: 56, value2: 94 },
-    { title: 'Wednesday', value1: 12, value2: 67 },
-    { title: 'Thursday', value1: 43, value2: 91 },
-    { title: 'Friday', value1: 22, value2: 73 },
-    { title: 'Saturday', value1: 53, value2: 82 },
-    { title: 'Sunday', value1: 9, value2: 69 },
-  ]
-
-  const progressGroupExample2 = [
-    { title: 'Male', icon: cilUser, value: 53 },
-    { title: 'Female', icon: cilUserFemale, value: 43 },
-  ]
-
-  const progressGroupExample3 = [
-    { title: 'Organic Search', icon: cibGoogle, percent: 56, value: '191,235' },
-    { title: 'Facebook', icon: cibFacebook, percent: 15, value: '51,223' },
-    { title: 'Twitter', icon: cibTwitter, percent: 11, value: '37,564' },
-    { title: 'LinkedIn', icon: cibLinkedin, percent: 8, value: '27,319' },
-  ]
+  /////////
 
   const tableExample = [
     {
@@ -177,18 +337,31 @@ const Dashboard = () => {
       activity: 'Last week',
     },
   ]
+  const iconSide = (
+    <CIcon
+      fontWeight="fontWeightBold"
+      icon={cilPin}
+      className={'font-bold text-' + colors[2]}
+    ></CIcon>
+  )
 
   return (
-    <>
+    <dashboardContext.Provider value={contextValue}>
+      <Login></Login>
       <WidgetsDropdown />
       <CCard className="mb-4">
         <CCardBody>
           <CRow>
             <CCol sm={5}>
+              {/* {sp_line_right_A &&
+                sp_line_right_A.map((item, index) => <span key={index}>{item.count}</span>)} */}
               <h4 id="traffic" className="card-title mb-0">
-                Traffic
+                Price and discount
               </h4>
-              <div className="small text-medium-emphasis">January - July 2021</div>
+              <div className="small text-medium-emphasis">
+                y axis is: (counts)
+                <hr />x axis is: (price)
+              </div>
             </CCol>
             <CCol sm={7} className="d-none d-md-block">
               <CButton color="primary" className="float-end">
@@ -211,52 +384,87 @@ const Dashboard = () => {
           <CChartLine
             style={{ height: '300px', marginTop: '40px' }}
             data={{
-              labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+              labels:
+                sp_line_left &&
+                sp_line_left.map((item, index) => {
+                  return item.min.toLocaleString()
+                }),
+              //labels: ['January', 'February', 'March', 'April', 'May'],
               datasets: [
+                // sp_line_left.map((item, index) => (
                 {
-                  label: 'My First dataset',
-                  backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
-                  borderColor: getStyle('--cui-info'),
-                  pointHoverBackgroundColor: getStyle('--cui-info'),
-                  borderWidth: 2,
-                  data: [
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                  ],
-                  fill: true,
-                },
-                {
-                  label: 'My Second dataset',
-                  backgroundColor: 'transparent',
-                  borderColor: getStyle('--cui-success'),
-                  pointHoverBackgroundColor: getStyle('--cui-success'),
-                  borderWidth: 2,
-                  data: [
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                  ],
-                },
-                {
-                  label: 'My Third dataset',
+                  label: ' count in price Category',
                   backgroundColor: 'transparent',
                   borderColor: getStyle('--cui-danger'),
                   pointHoverBackgroundColor: getStyle('--cui-danger'),
                   borderWidth: 1,
                   borderDash: [8, 5],
-                  data: [65, 65, 65, 65, 65, 65, 65],
+                  data:
+                    sp_line_left && sp_line_left.map((item, index) => item.count_in_priceCategory),
+                  fill: true,
+                },
+                {
+                  label: 'count with discount in priceCategory',
+                  backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
+                  borderColor: getStyle('--cui-success'),
+                  pointHoverBackgroundColor: getStyle('--cui-success'),
+                  borderWidth: 2,
+                  data:
+                    sp_line_left &&
+                    sp_line_left.map((item, index) => item.count_discount_in_priceCategory),
+                  fill: true,
                 },
               ],
             }}
+            // data={{
+
+            //labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            //datasets: [
+            //[
+            //   {
+            //     label: 'My First dataset',
+            //     backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
+            //     borderColor: getStyle('--cui-info'),
+            //     pointHoverBackgroundColor: getStyle('--cui-info'),
+            //     borderWidth: 2,
+            //     data: [
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //     ],
+            //     fill: true,
+            //   },
+            //   {
+            //     label: 'My Second dataset',
+            //     backgroundColor: 'transparent',
+            //     borderColor: getStyle('--cui-success'),
+            //     pointHoverBackgroundColor: getStyle('--cui-success'),
+            //     borderWidth: 2,
+            //     data: [
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //       random(50, 200),
+            //     ],
+            //   },
+            //   {
+            //     label: 'My Third dataset',
+            //     backgroundColor: 'transparent',
+            //     borderColor: getStyle('--cui-danger'),
+            //     pointHoverBackgroundColor: getStyle('--cui-danger'),
+            //     borderWidth: 1,
+            //     borderDash: [8, 5],
+            //     data: [65, 65, 65, 65, 65, 65, 65],
+            //   },
+            // ],
+            // }}
             options={{
               maintainAspectRatio: false,
               plugins: {
@@ -295,15 +503,58 @@ const Dashboard = () => {
         </CCardBody>
         <CCardFooter>
           <CRow xs={{ cols: 1 }} md={{ cols: 5 }} className="text-center">
-            {progressExample.map((item, index) => (
-              <CCol className="mb-sm-2 mb-0" key={index}>
-                <div className="text-medium-emphasis">{item.title}</div>
-                <strong>
-                  {item.value} ({item.percent}%)
-                </strong>
-                <CProgress thin className="mt-2" color={item.color} value={item.percent} />
-              </CCol>
-            ))}
+            {sp_5Moraba &&
+              sp_5Moraba.map((item, index) => (
+                <CCol className="mb-sm-2 mb-0" key={index}>
+                  <div className="text-medium-emphasis ">
+                    <CButton
+                      color="light"
+                      shape="rounded-pill"
+                      onClick={(e) => sp_5MorabaClick(item)}
+                    >
+                      <span style={{ fontSize: '26px' }} className={'text-' + colors[index]}>
+                        {item.seller}
+                      </span>
+                      <CIcon
+                        fontWeight="fontWeightBold"
+                        icon={cilPeople}
+                        className={'font-bold text-' + colors[index]}
+                      />
+                    </CButton>
+                    <br />
+                    <CTooltip content="asset">
+                      <CLink>
+                        <span>
+                          {iconSide}
+                          {item.seller_count}
+                        </span>
+                      </CLink>
+                    </CTooltip>
+                    <span style={{ margin: '12px' }}>|</span>
+                    <CTooltip content="avg price">
+                      <CLink>
+                        <span>
+                          {iconSide}
+                          {item.avg_rrp_price.toLocaleString()}
+                        </span>
+                      </CLink>
+                    </CTooltip>
+                  </div>
+                  {/* rating count {item.sum_rating_count}  */}
+                  commitment:
+                  <strong>
+                    <CTooltip content={'rate count: ' + item.sum_rating_count.toLocaleString()}>
+                      <CLink> ({item.sum_rating_percent}%) </CLink>
+                    </CTooltip>
+                  </strong>
+                  <CProgress
+                    thin
+                    className="mt-2"
+                    color={colors[2]}
+                    value={item.sum_rating_percent}
+                  />
+                </CCol>
+              ))}
           </CRow>
         </CCardFooter>
       </CCard>
@@ -313,87 +564,205 @@ const Dashboard = () => {
       <CRow>
         <CCol xs>
           <CCard className="mb-4">
-            <CCardHeader>Traffic {' & '} Sales</CCardHeader>
+            <CCardHeader>Prices {' & '} discount</CCardHeader>
             <CCardBody>
+              <CRow>
+                <CCol xs={12} md={6} xl={6}>
+                  <strong>All items(Seprated by Price & discount)</strong>
+                </CCol>
+
+                <CCol xs={12} md={6} xl={6}>
+                  <strong>All items(Seprated by discount or seller rate)</strong>
+                </CCol>
+              </CRow>
               <CRow>
                 <CCol xs={12} md={6} xl={6}>
                   <CRow>
                     <CCol sm={6}>
                       <div className="border-start border-start-4 border-start-info py-1 px-3">
-                        <div className="text-medium-emphasis small">New Clients</div>
-                        <div className="fs-5 fw-semibold">9,123</div>
+                        <div className="text-medium-emphasis small">Total items</div>
+                        <div className="fs-5 fw-semibold">
+                          {sp_line_leftSum && sp_line_leftSum.count_in_priceCategory}
+                        </div>
                       </div>
                     </CCol>
                     <CCol sm={6}>
                       <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
-                        <div className="text-medium-emphasis small">Recurring Clients</div>
-                        <div className="fs-5 fw-semibold">22,643</div>
+                        <div className="text-medium-emphasis small">Has discount</div>
+                        <div className="fs-5 fw-semibold">
+                          {sp_line_leftSum && sp_line_leftSum.count_discount_in_priceCategory}
+                        </div>
                       </div>
                     </CCol>
                   </CRow>
 
                   <hr className="mt-0" />
-                  {progressGroupExample1.map((item, index) => (
-                    <div className="progress-group mb-4" key={index}>
-                      <div className="progress-group-prepend">
-                        <span className="text-medium-emphasis small">{item.title}</span>
+                  {sp_line_left &&
+                    sp_line_left.map((item, index) => (
+                      <div className="progress-group mb-4" key={index}>
+                        <div className="progress-group-prepend">
+                          <span className="text-medium-emphasis small">
+                            {item.min.toLocaleString() + '-' + item.max.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress
+                            thin
+                            color="info"
+                            animated
+                            value={percentage(
+                              item.count_in_priceCategory,
+                              sp_line_leftSum.count_in_priceCategory,
+                            )}
+                          />
+                          <CProgress
+                            thin
+                            animated
+                            color="danger"
+                            value={percentage(
+                              item.count_discount_in_priceCategory,
+                              sp_line_leftSum.count_discount_in_priceCategory,
+                            )}
+                          />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="info" value={item.value1} />
-                        <CProgress thin color="danger" value={item.value2} />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </CCol>
 
                 <CCol xs={12} md={6} xl={6}>
                   <CRow>
                     <CCol sm={6}>
                       <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
-                        <div className="text-medium-emphasis small">Pageviews</div>
-                        <div className="fs-5 fw-semibold">78,623</div>
+                        <div className="text-medium-emphasis small">discount (total)</div>
+                        <div className="fs-5 fw-semibold">
+                          {sp_line_right_ASum && sp_line_right_ASum.count_all}
+                        </div>
                       </div>
                     </CCol>
                     <CCol sm={6}>
                       <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                        <div className="text-medium-emphasis small">Organic</div>
-                        <div className="fs-5 fw-semibold">49,123</div>
+                        <div className="text-medium-emphasis small">rate (total)</div>
+                        <div className="fs-5 fw-semibold">
+                          {sp_line_right_BSum && sp_line_right_BSum.count_all}
+                        </div>
                       </div>
                     </CCol>
                   </CRow>
 
                   <hr className="mt-0" />
 
-                  {progressGroupExample2.map((item, index) => (
-                    <div className="progress-group mb-4" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">{item.value}%</span>
-                      </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="warning" value={item.value} />
-                      </div>
-                    </div>
-                  ))}
+                  {
+                    sp_line_right_ASum && (
+                      //sp_line_right_ASum.map((item, index) => (
+                      <>
+                        <div className="progress-group mb-4">
+                          <div className="progress-group-header">
+                            <CIcon className="me-2" icon="cil-burn" size="lg" />
+                            <span>discount upper 66%</span>
+                            <span className="ms-auto fw-semibold">
+                              {percentage(
+                                sp_line_right_ASum.count_discount_upper66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                              %
+                            </span>
+                          </div>
+                          <div className="progress-group-bars">
+                            <CProgress
+                              thin
+                              color="warning"
+                              value={percentage(
+                                sp_line_right_ASum.count_discount_upper66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                            />
+                          </div>
 
-                  <div className="mb-5"></div>
+                          <div className="progress-group-bars">
+                            <CProgress
+                              thin
+                              color="warning"
+                              value={percentage(
+                                sp_line_right_ASum.count_discount_upper66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                            />
+                          </div>
+                        </div>
+                        <div className="progress-group mb-4">
+                          <div className="progress-group-header">
+                            <CIcon className="me-2" icon="cil-burn" size="lg" />
+                            <span>discount less 66%</span>
+                            <span className="ms-auto fw-semibold">
+                              {percentage(
+                                sp_line_right_ASum.count_discount_below66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                              %
+                            </span>
+                          </div>
+                          <div className="progress-group-bars">
+                            <CProgress
+                              thin
+                              color="warning"
+                              value={percentage(
+                                sp_line_right_ASum.count_discount_below66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                            />
+                          </div>
 
-                  {progressGroupExample3.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-medium-emphasis small">({item.percent}%)</span>
-                        </span>
+                          <div className="progress-group-bars">
+                            <CProgress
+                              thin
+                              color="warning"
+                              value={percentage(
+                                sp_line_right_ASum.count_discount_below66,
+                                sp_line_right_ASum.count_all,
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )
+                    //))
+                  }
+
+                  <div className="mb-5">
+                    {/* all:{sp_line_right_BSum && sp_line_right_BSum.count_all} */}
+                  </div>
+
+                  {sp_line_right_B &&
+                    sp_line_right_B.map((item, index) => (
+                      <div className="progress-group" key={index}>
+                        <div className="progress-group-header">
+                          <CIcon className="me-2" icon={sp_line_right_B_icons[index]} size="lg" />
+                          Rate
+                          <span>({item.min + '-' + item.max})</span>
+                          <span className="ms-auto fw-semibold">
+                            {item.count_in_ratingCategory}
+                            <span className="text-medium-emphasis small">
+                              (
+                              {percentage(
+                                item.count_in_ratingCategory,
+                                sp_line_right_BSum.count_all,
+                              )}
+                              %)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="progress-group-bars">
+                          <CProgress
+                            thin
+                            color="success"
+                            value={percentage(
+                              item.count_in_ratingCategory,
+                              sp_line_right_BSum.count_all,
+                            )}
+                          />
+                        </div>
                       </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="success" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </CCol>
               </CRow>
 
@@ -406,10 +775,10 @@ const Dashboard = () => {
                       <CIcon icon={cilPeople} />
                     </CTableHeaderCell>
                     <CTableHeaderCell>User</CTableHeaderCell>
-                    <CTableHeaderCell className="text-center">Country</CTableHeaderCell>
+                    {/* <CTableHeaderCell className="text-center">Country</CTableHeaderCell> */}
                     <CTableHeaderCell>Usage</CTableHeaderCell>
                     <CTableHeaderCell className="text-center">Payment Method</CTableHeaderCell>
-                    <CTableHeaderCell>Activity</CTableHeaderCell>
+                    {/* <CTableHeaderCell>Activity</CTableHeaderCell> */}
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
@@ -419,33 +788,75 @@ const Dashboard = () => {
                         <CAvatar size="md" src={item.avatar.src} status={item.avatar.status} />
                       </CTableDataCell>
                       <CTableDataCell>
-                        <div>{item.user.name}</div>
+                        <div style={{ whiteSpace: 'nowrap' }}>{item.user.name}</div>
                         <div className="small text-medium-emphasis">
-                          <span>{item.user.new ? 'New' : 'Recurring'}</span> | Registered:{' '}
-                          {item.user.registered}
+                          {/* <span>{item.user.new ? 'New' : 'Recurring'}</span> | Registered:{' '}
+                          {item.user.registered} */}
+                          all sells 2348
+                          <br /> avg price 448863
                         </div>
                       </CTableDataCell>
-                      <CTableDataCell className="text-center">
+                      {/* <CTableDataCell className="text-center">
                         <CIcon size="xl" icon={item.country.flag} title={item.country.name} />
-                      </CTableDataCell>
+                      </CTableDataCell> */}
                       <CTableDataCell>
                         <div className="clearfix">
                           <div className="float-start">
                             <strong>{item.usage.value}%</strong>
                           </div>
                           <div className="float-end">
-                            <small className="text-medium-emphasis">{item.usage.period}</small>
+                            <small className="text-medium-emphasis">
+                              rating counts: {item.usage.period}
+                            </small>
                           </div>
                         </div>
                         <CProgress thin color={item.usage.color} value={item.usage.value} />
                       </CTableDataCell>
                       <CTableDataCell className="text-center">
-                        <CIcon size="xl" icon={item.payment.icon} />
+                        {/* <CIcon size="xl" icon={item.payment.icon} /> */}
+                        <CRow>
+                          <CCol xs={6} sm={6} lg={3}>
+                            <CWidgetStatsF
+                              className="mb-1"
+                              icon={<CIcon width={24} icon={cilSettings} size="m" />}
+                              title="income"
+                              value="$1.999,50"
+                              color="primary"
+                            />
+                          </CCol>
+                          <CCol xs={12} sm={6} lg={3}>
+                            <CWidgetStatsF
+                              className="mb-3"
+                              icon={<CIcon width={24} icon={cilUser} size="xl" />}
+                              title="income"
+                              value="$1.999,50"
+                              color="info"
+                            />
+                          </CCol>
+                          <CCol xs={12} sm={6} lg={3}>
+                            <CWidgetStatsF
+                              className="mb-3"
+                              icon={<CIcon width={24} icon={cilMoon} size="xl" />}
+                              title="income"
+                              value="$1.999,50"
+                              color="warning"
+                            />
+                          </CCol>
+                          <CCol xs={12} sm={6} lg={3}>
+                            <CWidgetStatsF
+                              className="mb-3"
+                              icon={<CIcon width={24} icon={cilBell} size="xl" />}
+                              title="income"
+                              value="$1.999,50"
+                              color="danger"
+                            />
+                          </CCol>
+                        </CRow>
                       </CTableDataCell>
-                      <CTableDataCell>
+                      {/* <CTableDataCell>
                         <div className="small text-medium-emphasis">Last login</div>
                         <strong>{item.activity}</strong>
-                      </CTableDataCell>
+                      </CTableDataCell> */}
                     </CTableRow>
                   ))}
                 </CTableBody>
@@ -454,7 +865,7 @@ const Dashboard = () => {
           </CCard>
         </CCol>
       </CRow>
-    </>
+    </dashboardContext.Provider>
   )
 }
 
